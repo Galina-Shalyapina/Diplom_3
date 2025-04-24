@@ -1,8 +1,8 @@
-# Stellar Burgers UI & API Autotests
+# Stellar Burgers UI Autotests
 
 ## Описание проекта
 
-Этот проект содержит автоматизированные UI- и API-тесты для веб-приложения [Stellar Burgers](https://stellarburgers.nomoreparties.site/). Тесты реализованы с использованием Python, Selenium, Pytest и Allure.
+Этот проект содержит автоматизированные UI-тесты для веб-приложения [Stellar Burgers](https://stellarburgers.nomoreparties.site/). Тесты реализованы с использованием Python, Selenium, Pytest и Allure.
 
 ---
 
