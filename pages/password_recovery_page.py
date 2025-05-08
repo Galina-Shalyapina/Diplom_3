@@ -1,24 +1,30 @@
+import allure
 from config import BASE_URL
 from locators.password_recovery_locators import PasswordRecoveryLocators
+from pages.base_page import BasePage
 
-class PasswordRecoveryPage:
-    def __init__(self, driver):
-        self.driver = driver
 
+class PasswordRecoveryPage(BasePage):
+    @allure.step("Открытие страницы восстановления пароля")
     def open(self):
-        self.driver.get(f"{BASE_URL}reset-password")
+        self.open_url(f"{BASE_URL}reset-password")
 
+    @allure.step("Ввод email для восстановления пароля: {email}")
     def enter_email(self, email):
-        self.driver.find_element(*PasswordRecoveryLocators.EMAIL_INPUT).send_keys(email)
+        self.send_keys(PasswordRecoveryLocators.EMAIL_INPUT, email)
 
+    @allure.step("Нажатие кнопки 'Восстановить'")
     def click_recover(self):
-        self.driver.find_element(*PasswordRecoveryLocators.RECOVER_BUTTON).click()
+        self.click(PasswordRecoveryLocators.RECOVER_BUTTON)
 
+    @allure.step("Нажатие кнопки 'Показать пароль'")
     def click_show_password(self):
-        self.driver.find_element(*PasswordRecoveryLocators.SHOW_PASSWORD_BUTTON).click()
+        self.click(PasswordRecoveryLocators.SHOW_PASSWORD_BUTTON)
 
+    @allure.step("Получение элемента ввода пароля")
     def get_password_input(self):
-        return self.driver.find_element(*PasswordRecoveryLocators.PASSWORD_INPUT)
+        return self.find_element(PasswordRecoveryLocators.PASSWORD_INPUT)
 
+    @allure.step("Получение сфокусированного элемента ввода пароля")
     def get_focused_password_input(self):
-        return self.driver.find_element(*PasswordRecoveryLocators.PASSWORD_INPUT_FOCUSED)
+        return self.find_element(PasswordRecoveryLocators.PASSWORD_INPUT_FOCUSED)

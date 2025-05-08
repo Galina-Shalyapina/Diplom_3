@@ -1,85 +1,83 @@
+import allure
 from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import StaleElementReferenceException
 from locators.main_page_locators import MainPageLocators
 from config import BASE_URL
+from pages.base_page import BasePage
 
-class MainPage:
-    def __init__(self, driver):
-        self.driver = driver
 
+class MainPage(BasePage):
+    @allure.step("Открытие главной страницы")
     def open(self):
-        self.driver.get(BASE_URL)
+        self.open_url(BASE_URL)
 
+    @allure.step("Нажатие кнопки 'Конструктор'")
     def click_constructor(self):
-        self.driver.find_element(*MainPageLocators.CONSTRUCTOR_BUTTON).click()
+        self.click(MainPageLocators.CONSTRUCTOR_BUTTON)
 
+    @allure.step("Нажатие кнопки 'Лента заказов'")
     def click_order_feed(self):
-        self.driver.find_element(*MainPageLocators.ORDER_FEED_BUTTON).click()
+        self.click(MainPageLocators.ORDER_FEED_BUTTON)
 
+    @allure.step("Нажатие кнопки 'Войти в аккаунт' на главной странице")
     def click_login(self):
-        self.driver.find_element(*MainPageLocators.LOGIN_BUTTON).click()
+        self.click(MainPageLocators.LOGIN_BUTTON)
 
+    @allure.step("Клик по ингредиенту")
     def click_ingredient(self):
-        self.driver.find_element(*MainPageLocators.INGREDIENT).click()
+        self.click(MainPageLocators.INGREDIENT)
 
+    @allure.step("Закрытие модального окна")
     def close_modal(self):
-        self.driver.find_element(*MainPageLocators.MODAL_CLOSE_BUTTON).click()
+        self.click(MainPageLocators.MODAL_CLOSE_BUTTON)
 
+    @allure.step("Получение элемента счетчика ингредиентов")
     def get_ingredient_counter(self):
-        return self.driver.find_element(*MainPageLocators.INGREDIENT_COUNTER)
-    
+        return self.find_element(MainPageLocators.INGREDIENT_COUNTER)
+
+    @allure.step("Получение текстового элемента конструктора бургера")
     def get_burger_text(self):
-        return self.driver.find_element(*MainPageLocators.BURGER_TEXT)
+        return self.find_element(MainPageLocators.BURGER_TEXT)
 
+    @allure.step(
+        "Перетаскивание ингредиента с индексом {ingredient_index} в конструктор"
+    )
     def drag_and_drop_ingredient_to_constructor(self, ingredient_index=0):
-        WebDriverWait(self.driver, 10).until(
-            EC.visibility_of_element_located(MainPageLocators.INGREDIENT)
-        )
-        WebDriverWait(self.driver, 10).until(
-            EC.visibility_of_element_located(MainPageLocators.CONSTRUCTOR_AREA)
-        )
-        ingredients = self.driver.find_elements(*MainPageLocators.INGREDIENT)
-        constructor = self.driver.find_element(*MainPageLocators.CONSTRUCTOR_AREA)
-        ActionChains(self.driver).click_and_hold(
-            ingredients[ingredient_index]
-        ).move_to_element(constructor).release().perform()
+        self.wait_for_element_visibility(MainPageLocators.INGREDIENT)
+        self.wait_for_element_visibility(MainPageLocators.CONSTRUCTOR_AREA)
 
+        ingredients = self.find_elements(MainPageLocators.INGREDIENT)
+        constructor_area = self.find_element(MainPageLocators.CONSTRUCTOR_AREA)
+
+        actions = ActionChains(self.driver)
+        actions.click_and_hold(ingredients[ingredient_index]).move_to_element(
+            constructor_area
+        ).release()
+        self.perform_action_chains(actions)
+
+    @allure.step("Нажатие кнопки 'Оформить заказ'")
     def click_order_button(self):
-        self.driver.find_element(*MainPageLocators.ORDER_BUTTON).click()
+        self.click(MainPageLocators.ORDER_BUTTON)
 
+    @allure.step("Получение номера заказа из модального окна")
     def get_order_number(self):
         locator = MainPageLocators.ORDER_NUMBER
+        self.wait_for_element_visibility(locator)
 
-        # Берем значение из элемента или по умолчанию
-        old_text = self.driver.find_element(*locator).text or "9999"
+        initial_text = self.get_text(locator).strip()
+        reference_text_for_wait = initial_text if initial_text.isdigit() else "9999"
 
-        # Ждем, пока текст НЕ станет отличаться от старого
-        WebDriverWait(
-            self.driver,
-            10,
-            ignored_exceptions=(StaleElementReferenceException,)
-        ).until(
-            lambda d: d.find_element(*locator).text != old_text
+        self.wait_for_condition(
+            lambda drv: drv.find_element(*locator).text.strip().isdigit()
+            and drv.find_element(*locator).text.strip() != reference_text_for_wait,
+            timeout=10,
         )
 
-        return self.driver.find_element(*locator).text
+        return self.get_text(locator).strip()
 
+    @allure.step("Проверка, открыто ли модальное окно с деталями ингредиента")
     def is_modal_open(self, timeout=5):
-        try:
-            WebDriverWait(self.driver, 10).until(
-                EC.visibility_of_element_located(MainPageLocators.MODAL_CLOSE_BUTTON)
-            )
-            return True
-        except Exception:
-            return False
+        return self.is_displayed(MainPageLocators.MODAL_CLOSE_BUTTON, timeout=timeout)
 
+    @allure.step("Проверка, закрыто ли модальное окно с деталями ингредиента")
     def is_modal_closed(self, timeout=5):
-        try:
-            WebDriverWait(self.driver, timeout).until(
-                EC.invisibility_of_element_located(MainPageLocators.MODAL_CLOSE_BUTTON)
-            )
-            return True
-        except Exception:
-            return False
+        return self.is_invisible(MainPageLocators.MODAL_CLOSE_BUTTON, timeout=timeout)
